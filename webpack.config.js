@@ -11,7 +11,7 @@ module.exports = {
 
   output: {
     path: path.resolve(__dirname + '/dist'),
-    filename: '[name]-[hash].js',
+    filename: '[name].js',
   },
 
   module: {
@@ -23,6 +23,13 @@ module.exports = {
       {
         test: /\.html$/,
         loader: 'html-loader'
+      },
+      {
+        test: /\.js$/,
+        loader: "babel-loader",
+        query: {
+          presets: ["es2015", "stage-2"],
+        }
       }
     ],
   },
@@ -31,10 +38,10 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: 'src/index.html'
     }),
-    new ExtractTextPlugin('[name]-[hash].css'),
+    new ExtractTextPlugin('[name].css'),
   ],
 
-  devtool: 'source-map',
+  devtool: 'inline-source-map',
 
   devServer: {
     inline: true,
