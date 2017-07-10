@@ -29,10 +29,13 @@ _.extend(Model.prototype, {
     _.remove(this._observers, {observer})
   },
 
-  _notify: function (event, prop, newValue, oldValue) {
-    _.each(this._observers, (elem) => {
-      elem.func(this._proxy, event, prop, newValue, oldValue);
-    });
+  _notify: function (event, vaArgs) {
+    Array.prototype.unshift.call(arguments, this)
+
+    for (var i = 0; i < this._observers.length; ++i) {
+      var elem = this._observers[i]
+      elem.func.apply(elem.observer, arguments)
+    }
   },
 });
 
