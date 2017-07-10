@@ -9,7 +9,8 @@ function Model(attrs) {
     set: function(target, prop, value) {
       var oldValue = target[prop];
       Reflect.set(target, prop, value);
-      target._notify(Model.Event.PropertyChange, prop, value, oldValue);
+      target._notify(Model.Event.PropertyChange, target._proxy, prop, value, oldValue);
+      return true;
     }
   });
 
@@ -22,7 +23,7 @@ Model.Event = {
 
 _.extend(Model.prototype, {
   addObserver: function (observer, func) {
-    this._observers.push({observer: observer, func: func.bind(observer)})
+    this._observers.push({observer: observer, func: func})
   },
 
   removeObserver: function (observer) {
@@ -30,8 +31,6 @@ _.extend(Model.prototype, {
   },
 
   _notify: function (event, vaArgs) {
-    Array.prototype.unshift.call(arguments, this)
-
     for (var i = 0; i < this._observers.length; ++i) {
       var elem = this._observers[i]
       elem.func.apply(elem.observer, arguments)
