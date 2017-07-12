@@ -8,21 +8,20 @@ function NAArray() {
   array._proxy = new Proxy(array, {
     set: function(target, prop, value) {
       var oldValue = target[prop];
-      Reflect.set(target, prop, value);
-      if (!target._inSort) {
-        switch (prop) {
-        case 'length':
-          target._notify(NAArray.Event.LengthChange, this._proxy, prop, value, oldValue);
-          break;
-        default:
-          if (!isNaN(prop)) {
-            target._notify(NAArray.Event.ElementChange, this._proxy, Number(prop));
-          }
-        }
+      var oldLength = target.length;
 
-        // TODO Consider notification strategy for view refresh
-        //      reuse or interchange dom
+      Reflect.set(target, prop, value);
+
+      switch (prop) {
+      case 'length':
+        target._notify(NAArray.Event.LengthChange, this._proxy, prop, target.length, oldLength);
+        break;
+      default:
+        if (!isNaN(prop) && !target._mutatingSelf) {
+          target._notify(NAArray.Event.Replace, this._proxy, Number(prop), value, oldValue);
+        }
       }
+
       return true;
     },
   });
@@ -34,9 +33,11 @@ Reflect.setPrototypeOf(NAArray.prototype, Array.prototype);
 Reflect.setPrototypeOf(NAArray, Array);
 
 NAArray.Event = {
-  LengthChange: 'NAArray:Event:LengthChange',
-  ElementChange: 'NAArray:Event:ElementChange',
-  Sort: 'NAArray:Event:Sort',
+  Add: 'NAArray:Add',
+  Remove: 'NAArray:Remove',
+  Replace: 'NAArray:Replace',
+  Sort: 'NAArray:Sort',
+  LengthChange: 'NAArray:LengthChange',
 };
 
 _.extend(NAArray.prototype, {
@@ -48,16 +49,111 @@ _.extend(NAArray.prototype, {
     _.remove(this._observers, {observer})
   },
 
-  sort: function (comparator) {
-    this._inSort = true;
-    Array.prototype.sort.call(this, comparator);
-    this._inSort = false;
+  copyWithin: function (target, start, end) {
+    throw new Error('copyWithin() is not suppoted on NAArray.');
+  },
+
+  fill: function (value, start, end) {
+    throw new Error('fill() is not suppoted on NAArray.');
+  },
+
+  pop: function () {
+    this._mutatingSelf = true;
+    let last = Array.prototype.pop.call(this);
+    this._mutatingSelf = false;
+
+    if (last) {
+      this._notify(NAArray.Event.Remove, this._proxy, this.length, last);
+    }
+    return last;
+  },
+
+  push: function (vaArgs) {
+    let index = this.length;
+
+    this._mutatingSelf = true;
+    let ret = Array.prototype.push.call(this, arguments);
+    this._mutatingSelf = false;
+
+    for (let i = 0; i < arguments.length; ++i) {
+      this._notify(NAArray.Event.Add, this._proxy, index++, arguments[i]);
+    }
+
+    return ret;
+  },
+
+  reverse: function () {
+    this._mutatingSelf = true;
+    Array.prototype.reverse.call(this);
+    this._mutatingSelf = false;
+
     this._notify(NAArray.Event.Sort, this._proxy);
+    return this._proxy;
+  },
+
+  shift: function () {
+    this._mutatingSelf = true;
+    let first = Array.prototype.shift.call(this);
+    this._mutatingSelf = false;
+
+    if (first) {
+      this._notify(NAArray.Event.Remove, this._proxy, 0, first);
+    }
+    return first;
+  },
+
+  sort: function (comparator) {
+    this._mutatingSelf = true;
+    Array.prototype.sort.call(this, comparator);
+    this._mutatingSelf = false;
+
+    this._notify(NAArray.Event.Sort, this._proxy);
+    return this._proxy;
+  },
+
+  splice: function (index, howMany, vaArgs) {
+    let _index = 0 > index ? this.length + index : index;
+    _index = Math.max(0, _index);
+    _index = Math.min(this.length, _index);
+
+    let _willNotifyRemoved = [];
+    let _howMany = howMany;
+    for (let i = _index; i < this.length && 0 < _howMany; ++i, _howMany--) {
+      _willNotifyRemoved.push(this[i]);
+    }
+
+    this._mutatingSelf = true;
+    let ret = Array.prototype.splice.call(this, arguments);
+    this._mutatingSelf = false;
+
+    for (let i = 0; i < _willNotifyRemoved.length; ++i) {
+      this._notify(NAArray.Event.Remove, this._proxy, _index + i, _willNotifyRemoved[i]);
+    }
+
+    for (let i = 2; i < arguments.length; ++i) {
+      this._notify(NAArray.Event.Add, this._proxy, _index + i - 2, arguments[i]);
+    }
+
+    return ret;
+  },
+
+  unshift: function (vaArgs) {
+    let index = 0;
+
+    this._mutatingSelf = true;
+    let ret = Array.prototype.unshift.call(this, arguments);
+    this._mutatingSelf = false;
+
+    for (let i = 0; i < arguments.length; ++i) {
+      this._notify(NAArray.Event.Add, this._proxy, index++, arguments[i]);
+    }
+
+    return ret;
   },
 
   _notify: function (event, vaArgs) {
-    for (var i = 0; i < this._observers.length; ++i) {
-      var elem = this._observers[i]
+    for (let i = 0; i < this._observers.length; ++i) {
+      let elem = this._observers[i]
       elem.func.apply(elem.observer, arguments)
     }
   },
