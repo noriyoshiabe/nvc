@@ -1,7 +1,5 @@
-import _ from 'lodash';
-
 function NAObject(attrs) {
-  _.extend(this, attrs);
+  Object.assign(this, attrs);
 
   this._observers = [];
 
@@ -24,17 +22,23 @@ function NAObject(attrs) {
   return this._proxy;
 }
 
-NAObject.Event = {
+const Event = {
   PropertyChange: 'NAObject:PropertyChange'
 };
+NAObject.Event = Event;
 
-_.extend(NAObject.prototype, {
+Object.assign(NAObject.prototype, {
   addObserver: function (observer, func) {
     this._observers.push({observer: observer, func: func})
   },
 
   removeObserver: function (observer) {
-    _.remove(this._observers, {observer})
+    let index = this._observers.indexOf(observer);
+    for (let i = this._observers.length; 0 <= i; --i) {
+      if (this._observers[i].observer === observer) {
+        this._observers.splice(i, 1);
+      }
+    }
   },
 
   _notify: function (event, vaArgs) {

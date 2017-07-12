@@ -1,5 +1,3 @@
-import _ from 'lodash';
-
 function NAArray() {
   let array = Reflect.construct(Array, arguments, NAArray);
 
@@ -32,21 +30,27 @@ function NAArray() {
 Reflect.setPrototypeOf(NAArray.prototype, Array.prototype);
 Reflect.setPrototypeOf(NAArray, Array);
 
-NAArray.Event = {
+const Event = {
   Add: 'NAArray:Add',
   Remove: 'NAArray:Remove',
   Replace: 'NAArray:Replace',
   Sort: 'NAArray:Sort',
   LengthChange: 'NAArray:LengthChange',
 };
+NAArray.Event = Event;
 
-_.extend(NAArray.prototype, {
+Object.assign(NAArray.prototype, {
   addObserver: function (observer, func) {
     this._observers.push({observer: observer, func: func})
   },
 
   removeObserver: function (observer) {
-    _.remove(this._observers, {observer})
+    let index = this._observers.indexOf(observer);
+    for (let i = this._observers.length; 0 <= i; --i) {
+      if (this._observers[i].observer === observer) {
+        this._observers.splice(i, 1);
+      }
+    }
   },
 
   copyWithin: function (target, start, end) {
