@@ -1,22 +1,22 @@
 function NAArray() {
   let array = Reflect.construct(Array, arguments, NAArray);
-
+  array._oldLength = array.length;
   array._observers = [];
 
   array._proxy = new Proxy(array, {
     set: function(target, prop, value) {
       var oldValue = target[prop];
-      var oldLength = target.length;
 
       Reflect.set(target, prop, value);
 
       switch (prop) {
       case 'length':
-        target._notify(NAArray.Event.LengthChange, this._proxy, prop, target.length, oldLength);
+        target._notify(NAArray.Event.LengthChange, target._proxy, target.length, target._oldLength);
+        target._oldLength = target.length;
         break;
       default:
         if (!isNaN(prop) && !target._mutatingSelf) {
-          target._notify(NAArray.Event.Replace, this._proxy, Number(prop), value, oldValue);
+          target._notify(NAArray.Event.Replace, target._proxy, Number(prop), value, oldValue);
         }
       }
 
@@ -45,8 +45,7 @@ Object.assign(NAArray.prototype, {
   },
 
   removeObserver: function (observer) {
-    let index = this._observers.indexOf(observer);
-    for (let i = this._observers.length; 0 <= i; --i) {
+    for (let i = this._observers.length - 1; 0 <= i; --i) {
       if (this._observers[i].observer === observer) {
         this._observers.splice(i, 1);
       }
@@ -66,7 +65,7 @@ Object.assign(NAArray.prototype, {
     let last = Array.prototype.pop.call(this);
     this._mutatingSelf = false;
 
-    if (last) {
+    if (last != undefined && last != null) {
       this._notify(NAArray.Event.Remove, this._proxy, this.length, last);
     }
     return last;
@@ -100,7 +99,7 @@ Object.assign(NAArray.prototype, {
     let first = Array.prototype.shift.call(this);
     this._mutatingSelf = false;
 
-    if (first) {
+    if (first != undefined && first != null) {
       this._notify(NAArray.Event.Remove, this._proxy, 0, first);
     }
     return first;

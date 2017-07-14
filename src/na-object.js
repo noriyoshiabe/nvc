@@ -33,8 +33,7 @@ Object.assign(NAObject.prototype, {
   },
 
   removeObserver: function (observer) {
-    let index = this._observers.indexOf(observer);
-    for (let i = this._observers.length; 0 <= i; --i) {
+    for (let i = this._observers.length - 1; 0 <= i; --i) {
       if (this._observers[i].observer === observer) {
         this._observers.splice(i, 1);
       }
