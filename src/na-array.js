@@ -11,8 +11,10 @@ function NAArray() {
 
       switch (prop) {
       case 'length':
-        target._notify(NAArray.Event.LengthChange, target._proxy, target.length, target._oldLength);
-        target._oldLength = target.length;
+        if (target._oldLength != target.length) {
+          target._notify(NAArray.Event.LengthChange, target._proxy, target.length, target._oldLength);
+          target._oldLength = target.length;
+        }
         break;
       default:
         if (!isNaN(prop) && !target._mutatingSelf) {
@@ -75,7 +77,7 @@ Object.assign(NAArray.prototype, {
     let index = this.length;
 
     this._mutatingSelf = true;
-    let ret = Array.prototype.push.call(this, arguments);
+    let ret = Array.prototype.push.apply(this, arguments);
     this._mutatingSelf = false;
 
     for (let i = 0; i < arguments.length; ++i) {
@@ -126,7 +128,7 @@ Object.assign(NAArray.prototype, {
     }
 
     this._mutatingSelf = true;
-    let ret = Array.prototype.splice.call(this, arguments);
+    let ret = Array.prototype.splice.apply(this, arguments);
     this._mutatingSelf = false;
 
     for (let i = 0; i < _willNotifyRemoved.length; ++i) {
@@ -144,7 +146,7 @@ Object.assign(NAArray.prototype, {
     let index = 0;
 
     this._mutatingSelf = true;
-    let ret = Array.prototype.unshift.call(this, arguments);
+    let ret = Array.prototype.unshift.apply(this, arguments);
     this._mutatingSelf = false;
 
     for (let i = 0; i < arguments.length; ++i) {
