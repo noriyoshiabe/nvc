@@ -1,7 +1,7 @@
 import assert from 'power-assert';
-import NAObject from '../src/na-object';
-import NAView from '../src/na-view';
-import NABinder from '../src/na-binder';
+import { NAObject } from '../nvc';
+import { NAView } from '../nvc';
+import { NABinder } from '../nvc';
 
 import jsdom from 'jsdom';
 const { JSDOM } = jsdom;

@@ -1,5 +1,5 @@
-import NAObject from './na-object';
-import NAFormatter from './na-formatter';
+import NAObject from './NAObject';
+import NAFormatter from './NAFormatter';
 
 class NABinder {
   constructor(object) {

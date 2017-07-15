@@ -1,6 +1,6 @@
 import assert from 'power-assert';
 import _ from 'lodash';
-import NAArray from '../src/na-array';
+import { NAArray } from '../nvc';
 
 describe("notify", () => {
   it("length", (done) => {

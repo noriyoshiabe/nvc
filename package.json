@@ -9,5 +9,6 @@
   },
   "scripts": {
     "test": "mocha --compilers js:espower-babel/guess"
-  }
+  },
+  "main": "nvc.js"
 }

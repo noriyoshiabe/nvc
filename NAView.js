@@ -1,4 +1,4 @@
-import NAObject from './na-object';
+import NAObject from './NAObject';
 
 class NAView extends NAObject {
   constructor(source) {

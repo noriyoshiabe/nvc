@@ -1,5 +1,5 @@
 import assert from 'power-assert';
-import NAViewController from '../src/na-view-controller';
+import { NAViewController } from '../nvc';
 
 describe("destroy", () => {
   it("call view's destroy", () => {
