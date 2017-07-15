@@ -37,6 +37,23 @@ const HTMLString = `
 </section>
 `;
 
+const HTMLNestView = `
+<html>
+  <head></head>
+  <body>
+    <div id="view">
+      <h1 na-view-property="name"></h1>
+      <div na-view="childView1">
+        <h1 na-view-property="name"></h1>
+        <div na-view="childView2">
+          <h1 na-view-property="name"></h1>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+`;
+
 describe("From HTML element", () => {
   beforeEach(() => {
     let dom = new JSDOM(HTMLForSection);
@@ -83,5 +100,32 @@ describe("From String", () => {
     assert(view.element.tagName == 'SECTION');
     assert(view.head.tagName == 'H1');
     assert(view.body.tagName == 'P');
+  })
+});
+
+describe("Nesting", () => {
+  beforeEach(() => {
+    let dom = new JSDOM("<!DOCTYPE html>");
+    global.window = dom.window;
+  });
+
+  it("attatch nested view", () => {
+    let view = new NAView(HTMLNestView);
+    assert(view.element.tagName == 'DIV');
+    assert(view.name.tagName == 'H1');
+    assert(view.childView1.element.tagName == 'DIV');
+    assert(view.childView1.name.tagName == 'H1');
+    assert(view.childView1.childView2.element.tagName == 'DIV');
+    assert(view.childView1.childView2.name.tagName == 'H1');
+  })
+
+  it("destroy child view from anyware", () => {
+    let view = new NAView(HTMLNestView);
+    assert(view.childView1.childView2.name.tagName == 'H1');
+    assert(view.element.querySelectorAll('div[na-view="childView2"]').length == 1);
+
+    view.childView1.childView2.destroy();
+    assert(view.childView1.childView2 === undefined);
+    assert(view.element.querySelectorAll('div[na-view="childView2"]').length == 0);
   })
 });

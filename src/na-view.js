@@ -7,13 +7,29 @@ class NAView extends NAObject {
     let propertyElements = this.element.querySelectorAll('*[na-view-property]');
 
     for (var element of propertyElements) {
-      let propertyName = element.getAttribute('na-view-property');
+      if (this._isRootElementNearestAncestorView(element)) {
+        let propertyName = element.getAttribute('na-view-property');
 
-      if (this[propertyName]) {
-        throw new Error(`Property name [${propertyName}] conflicts.`);
+        if (this[propertyName]) {
+          throw new Error(`Property name [${propertyName}] conflicts.`);
+        }
+
+        this[propertyName] = element;
       }
+    }
 
-      this[propertyName] = element;
+    let viewElements = this.element.querySelectorAll('*[na-view]');
+    for (var element of viewElements) {
+      if (this._isRootElementNearestAncestorView(element)) {
+        let viewName = element.getAttribute('na-view');
+
+        if (this[viewName]) {
+          throw new Error(`Property name [${viewName}] conflicts.`);
+        }
+
+        this[viewName] = new NAView(element);
+        this._observeDestroyChild(this[viewName]);
+      }
     }
   }
 
@@ -21,10 +37,45 @@ class NAView extends NAObject {
     if (this.element && this.element.parentNode) {
       this.element.parentNode.removeChild(this.element);
     }
+
+    this.notify(NAView.Event.Destory, this);
+  }
+
+  _isRootElementNearestAncestorView(element) {
+    element = element.parentNode;
+
+    while (null != element) {
+      if (this.element === element) {
+        return true;
+      }
+
+      if (element.hasAttribute('na-view')) {
+        return false;
+      }
+
+      element = element.parentNode;
+    }
+
+    throw new Error(`Should never be reached.`);
+  }
+
+  _observeDestroyChild(child) {
+    child.addObserver(this, (event, view) => {
+      if (NAView.Event.Destory == event) {
+        for (var prop in this) {
+          if (this[prop] === view) {
+            delete this[prop];
+          }
+        }
+      }
+    })
   }
 }
 
-export default NAView;
+const Event = {
+  Destroy: 'NAView:Destory',
+};
+NAView.Event = Event;
 
 function ElementFromSource(source) {
   switch (typeof source) {
@@ -54,3 +105,5 @@ function ElementFromSource(source) {
     throw new Error('Unsupported source type');
   }
 }
+
+export default NAView;
