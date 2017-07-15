@@ -8,6 +8,7 @@ class NAView extends NAObject {
 
     for (var element of propertyElements) {
       let propertyName = element.getAttribute('na-view-property');
+
       if (this[propertyName]) {
         throw new Error(`Property name [${propertyName}] conflicts.`);
       }

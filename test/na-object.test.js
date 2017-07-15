@@ -29,6 +29,7 @@ describe("property change", () => {
     let hoge = new Hoge();
     let event;
     let prop;
+
     hoge.addObserver(this, (_event, _sender, _prop) => {
       event = _event;
       prop = _prop;

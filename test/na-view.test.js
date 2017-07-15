@@ -1,5 +1,6 @@
 import assert from 'power-assert';
 import NAView from '../src/na-view';
+
 import jsdom from 'jsdom';
 const { JSDOM } = jsdom;
 
