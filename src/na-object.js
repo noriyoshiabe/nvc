@@ -2,24 +2,27 @@ function NAObject(attrs) {
   Object.assign(this, attrs);
 
   this._observers = [];
+  this._callingSetters = {};
 
-  this._proxy = new Proxy(this, {
+  this.proxy = new Proxy(this, {
     set: function(target, prop, value) {
-      let oldValue = target[prop];
+      let setterName = 'set' + prop.charAt(0).toUpperCase() + prop.slice(1);
 
-      Reflect.set(target, prop, value);
-
-      let onSetProperty = 'onSet' + prop.charAt(0).toUpperCase() + prop.slice(1);
-      if (target[onSetProperty]) {
-        target[onSetProperty](value);
+      if (target[setterName] && !target._callingSetters[setterName]) {
+        target._callingSetters[setterName] = true;
+        target[setterName](value);
+        delete target._callingSetters[setterName];
+        return true;
       }
 
-      target.notify(NAObject.Event.PropertyChange, target._proxy, prop, value, oldValue);
+      let oldValue = target[prop];
+      Reflect.set(target, prop, value);
+      target.notify(NAObject.Event.PropertyChange, target.proxy, prop, value, oldValue);
       return true;
     }
   });
 
-  return this._proxy;
+  return this.proxy;
 }
 
 const Event = {
