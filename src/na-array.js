@@ -12,13 +12,13 @@ function NAArray() {
       switch (prop) {
       case 'length':
         if (target._oldLength != target.length) {
-          target._notify(NAArray.Event.LengthChange, target._proxy, target.length, target._oldLength);
+          target.notify(NAArray.Event.LengthChange, target._proxy, target.length, target._oldLength);
           target._oldLength = target.length;
         }
         break;
       default:
         if (!isNaN(prop) && !target._mutatingSelf) {
-          target._notify(NAArray.Event.Replace, target._proxy, Number(prop), value, oldValue);
+          target.notify(NAArray.Event.Replace, target._proxy, Number(prop), value, oldValue);
         }
       }
 
@@ -68,7 +68,7 @@ Object.assign(NAArray.prototype, {
     this._mutatingSelf = false;
 
     if (last != undefined && last != null) {
-      this._notify(NAArray.Event.Remove, this._proxy, this.length, last);
+      this.notify(NAArray.Event.Remove, this._proxy, this.length, last);
     }
     return last;
   },
@@ -81,7 +81,7 @@ Object.assign(NAArray.prototype, {
     this._mutatingSelf = false;
 
     for (let i = 0; i < arguments.length; ++i) {
-      this._notify(NAArray.Event.Add, this._proxy, index++, arguments[i]);
+      this.notify(NAArray.Event.Add, this._proxy, index++, arguments[i]);
     }
 
     return ret;
@@ -92,7 +92,7 @@ Object.assign(NAArray.prototype, {
     Array.prototype.reverse.call(this);
     this._mutatingSelf = false;
 
-    this._notify(NAArray.Event.Sort, this._proxy);
+    this.notify(NAArray.Event.Sort, this._proxy);
     return this._proxy;
   },
 
@@ -102,7 +102,7 @@ Object.assign(NAArray.prototype, {
     this._mutatingSelf = false;
 
     if (first != undefined && first != null) {
-      this._notify(NAArray.Event.Remove, this._proxy, 0, first);
+      this.notify(NAArray.Event.Remove, this._proxy, 0, first);
     }
     return first;
   },
@@ -112,7 +112,7 @@ Object.assign(NAArray.prototype, {
     Array.prototype.sort.call(this, comparator);
     this._mutatingSelf = false;
 
-    this._notify(NAArray.Event.Sort, this._proxy);
+    this.notify(NAArray.Event.Sort, this._proxy);
     return this._proxy;
   },
 
@@ -132,11 +132,11 @@ Object.assign(NAArray.prototype, {
     this._mutatingSelf = false;
 
     for (let i = 0; i < _willNotifyRemoved.length; ++i) {
-      this._notify(NAArray.Event.Remove, this._proxy, _index + i, _willNotifyRemoved[i]);
+      this.notify(NAArray.Event.Remove, this._proxy, _index + i, _willNotifyRemoved[i]);
     }
 
     for (let i = 2; i < arguments.length; ++i) {
-      this._notify(NAArray.Event.Add, this._proxy, _index + i - 2, arguments[i]);
+      this.notify(NAArray.Event.Add, this._proxy, _index + i - 2, arguments[i]);
     }
 
     return ret;
@@ -150,13 +150,13 @@ Object.assign(NAArray.prototype, {
     this._mutatingSelf = false;
 
     for (let i = 0; i < arguments.length; ++i) {
-      this._notify(NAArray.Event.Add, this._proxy, index++, arguments[i]);
+      this.notify(NAArray.Event.Add, this._proxy, index++, arguments[i]);
     }
 
     return ret;
   },
 
-  _notify: function (event, vaArgs) {
+  notify: function (event, vaArgs) {
     for (let i = 0; i < this._observers.length; ++i) {
       let elem = this._observers[i]
       elem.func.apply(elem.observer, arguments)

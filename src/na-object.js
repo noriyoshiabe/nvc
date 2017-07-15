@@ -14,7 +14,7 @@ function NAObject(attrs) {
         target[onSetProperty](value);
       }
 
-      target._notify(NAObject.Event.PropertyChange, target._proxy, prop, value, oldValue);
+      target.notify(NAObject.Event.PropertyChange, target._proxy, prop, value, oldValue);
       return true;
     }
   });
@@ -40,7 +40,7 @@ Object.assign(NAObject.prototype, {
     }
   },
 
-  _notify: function (event, vaArgs) {
+  notify: function (event, vaArgs) {
     for (var i = 0; i < this._observers.length; ++i) {
       var elem = this._observers[i]
       elem.func.apply(elem.observer, arguments)
