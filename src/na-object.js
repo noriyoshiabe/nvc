@@ -9,9 +9,9 @@ function NAObject(attrs) {
 
       Reflect.set(target, prop, value);
 
-      let setterName = prop.charAt(0).toUpperCase() + prop.slice(1);
-      if (target[setterName]) {
-        target[setterName](value);
+      let onSetProperty = 'onSet' + prop.charAt(0).toUpperCase() + prop.slice(1);
+      if (target[onSetProperty]) {
+        target[onSetProperty](value);
       }
 
       target._notify(NAObject.Event.PropertyChange, target._proxy, prop, value, oldValue);

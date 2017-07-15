@@ -15,6 +15,18 @@ describe("property change", () => {
 
     object.test = 1;
   });
+
+  it("onXXX", (done) => {
+    class Hoge extends NAObject {
+      onSetTestVal(val) {
+        assert(val == 3);
+        done();
+      }
+    }
+
+    let hoge = new Hoge();
+    hoge.testVal = 3;
+  });
 });
 
 describe("remove observer", () => {
