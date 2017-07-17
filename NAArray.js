@@ -54,6 +54,15 @@ Object.assign(NAArray.prototype, {
     }
   },
 
+  notify: function (event, vaArgs) {
+    let observers = this._observers.slice();
+
+    for (let i = 0; i < observers.length; ++i) {
+      let elem = observers[i]
+      elem.func.apply(elem.observer, arguments)
+    }
+  },
+
   copyWithin: function (target, start, end) {
     throw new Error('copyWithin() is not suppoted on NAArray.');
   },
@@ -154,13 +163,6 @@ Object.assign(NAArray.prototype, {
     }
 
     return ret;
-  },
-
-  notify: function (event, vaArgs) {
-    for (let i = 0; i < this._observers.length; ++i) {
-      let elem = this._observers[i]
-      elem.func.apply(elem.observer, arguments)
-    }
   },
 });
 

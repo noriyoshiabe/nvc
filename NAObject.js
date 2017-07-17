@@ -44,8 +44,10 @@ Object.assign(NAObject.prototype, {
   },
 
   notify: function (event, vaArgs) {
-    for (var i = 0; i < this._observers.length; ++i) {
-      var elem = this._observers[i]
+    let observers = this._observers.slice();
+    
+    for (var i = 0; i < observers.length; ++i) {
+      var elem = observers[i]
       elem.func.apply(elem.observer, arguments)
     }
   },
