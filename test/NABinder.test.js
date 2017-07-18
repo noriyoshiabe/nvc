@@ -123,4 +123,18 @@ describe("binder", () => {
 
     assert(object.inputText == 'HOGE');
   });
+
+  it("one way binding", () => {
+    let view = new NAView(window.document.querySelector('#view'));
+    let inputTextBinder = new NABinder(object).bind({to: view.inputText, keyPath: 'inputText', oneway: true});
+
+    assert(view.inputText.value == 'INPUT');
+
+    view.inputText.value = "HOGE";
+    triggerChange(view.inputText);
+    assert(object.inputText == 'INPUT');
+
+    object.inputText = "HOGEEE";
+    assert(view.inputText.value == 'HOGEEE');
+  });
 });

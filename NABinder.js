@@ -13,7 +13,7 @@ class NABinder {
     this._changeListener = this._changeListener.bind(this);
   }
 
-  bind({to = undefined, keyPath = undefined, formatter = NAFormatter}) {
+  bind({to = undefined, keyPath = undefined, formatter = NAFormatter, oneway = false}) {
     if (!to) {
       throw new Error('to argument is required.');
     }
@@ -38,9 +38,13 @@ class NABinder {
         this.property = property;
         this.formatter = formatter;
         this.target = to;
+        this.oneway = oneway;
 
         this.subject.addObserver(this, this._observer);
-        this.target.addEventListener('change', this._changeListener);
+
+        if (!this.oneway) {
+          this.target.addEventListener('change', this._changeListener);
+        }
 
         this._setValueToElement(this.target, this.formatter.objectToNode(this.subject[this.property]));
       }
@@ -63,7 +67,7 @@ class NABinder {
       this.subject.removeObserver(this);
     }
 
-    if (this.target) {
+    if (!this.oneway && this.target) {
       this.target.removeEventListener('change', this._changeListener)
     }
   }
