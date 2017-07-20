@@ -1,4 +1,5 @@
 import NAObject from './NAObject';
+import NAArray from './NAArray';
 import NAFormatter from './NAFormatter';
 
 class NABinder {
@@ -20,8 +21,8 @@ class NABinder {
 
 class NABinderItem {
   constructor(object) {
-    if (!(object instanceof NAObject)) {
-      throw new Error('object must be instance of NAObject.');
+    if (!(object instanceof NAObject || object instanceof NAArray)) {
+      throw new Error('object must be instance of NAObject or NAArray.');
     }
 
     this.object = object;
@@ -70,8 +71,8 @@ class NABinderItem {
         if (!subject) {
           throw new Error(`property of "${property}" in "${keyPath}" not exists.`);
         }
-        if (!(subject instanceof NAObject)) {
-          throw new Error(`property of "${property}" in "${keyPath}" must be instance of NAObject.`);
+        if (!(subject instanceof NAObject || subject instanceof NAArray)) {
+          throw new Error(`property of "${property}" in "${keyPath}" must be instance of NAObject or NAArray.`);
         }
       }
     }
