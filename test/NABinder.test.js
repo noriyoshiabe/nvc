@@ -53,11 +53,11 @@ describe("binder", () => {
 
   it("bind attribute value", () => {
     let view = new NAView(window.document.querySelector('#view'));
-    new NABinder(object).bind({to: view.textH1, keyPath: 'textH1'});
-    new NABinder(object).bind({to: view.textP, keyPath: 'textP'});
-    new NABinder(object).bind({to: view.inputText, keyPath: 'inputText'});
-    new NABinder(object).bind({to: view.select, keyPath: 'child.select'});
-    new NABinder(object).bind({to: view.textArea, keyPath: 'child.textArea'});
+    let binder = new NABinder(object).bind({to: view.textH1, keyPath: 'textH1'})
+      .bind({to: view.textP, keyPath: 'textP'})
+      .bind({to: view.inputText, keyPath: 'inputText'})
+      .bind({to: view.select, keyPath: 'child.select'})
+      .bind({to: view.textArea, keyPath: 'child.textArea'})
 
     assert(view.textH1.innerText == 'H1');
     assert(view.textP.innerText == 'P');
@@ -90,9 +90,9 @@ describe("binder", () => {
 
   it("reflect element change", () => {
     let view = new NAView(window.document.querySelector('#view'));
-    let inputTextBinder = new NABinder(object).bind({to: view.inputText, keyPath: 'inputText'});
-    let selectBinder = new NABinder(object).bind({to: view.select, keyPath: 'child.select'});
-    let textAreaBinder = new NABinder(object).bind({to: view.textArea, keyPath: 'child.textArea'});
+    let binder = new NABinder(object).bind({to: view.inputText, keyPath: 'inputText'})
+      .bind({to: view.select, keyPath: 'child.select'})
+      .bind({to: view.textArea, keyPath: 'child.textArea'});
 
     view.inputText.value = "HOGE";
     view.select.value = "opt2";
@@ -109,14 +109,14 @@ describe("binder", () => {
 
   it("unbind reflect element change", () => {
     let view = new NAView(window.document.querySelector('#view'));
-    let inputTextBinder = new NABinder(object).bind({to: view.inputText, keyPath: 'inputText'});
+    let binder = new NABinder(object).bind({to: view.inputText, keyPath: 'inputText'});
 
     view.inputText.value = "HOGE";
     triggerChange(view.inputText);
 
     assert(object.inputText == 'HOGE');
 
-    inputTextBinder.unbind();
+    binder.unbind();
 
     view.inputText.value = "HOGEEE";
     triggerChange(view.inputText);
@@ -126,7 +126,7 @@ describe("binder", () => {
 
   it("one way binding", () => {
     let view = new NAView(window.document.querySelector('#view'));
-    let inputTextBinder = new NABinder(object).bind({to: view.inputText, keyPath: 'inputText', oneway: true});
+    let binder = new NABinder(object).bind({to: view.inputText, keyPath: 'inputText', oneway: true});
 
     assert(view.inputText.value == 'INPUT');
 

@@ -3,6 +3,23 @@ import NAFormatter from './NAFormatter';
 
 class NABinder {
   constructor(object) {
+    this.object = object;
+    this.binderItems = [];
+  }
+
+  bind({to = undefined, keyPath = undefined, formatter = NAFormatter, oneway = false}) {
+    this.binderItems.push(new NABinderItem(this.object).bind({to, keyPath, formatter, oneway}));
+    return this;
+  }
+
+  unbind() {
+    this.binderItems.forEach((binderItem) => binderItem.unbind());
+    this.binderItems.splice(0, this.binderItems.length);
+  }
+}
+
+class NABinderItem {
+  constructor(object) {
     if (!(object instanceof NAObject)) {
       throw new Error('object must be instance of NAObject.');
     }
