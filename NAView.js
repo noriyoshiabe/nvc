@@ -97,7 +97,15 @@ function ElementFromSource(source) {
 
     switch (source.tagName) {
     case 'TEMPLATE':
-      return window.document.importNode(source.content, true);
+      let documentFragemnt = window.document.importNode(source.content, true);
+      if (1 == documentFragemnt.children.length) {
+        return documentFragemnt.firstElementChild;
+      }
+      else {
+        let element = window.document.createElement('div');
+        element.appendChild(documentFragemnt);
+        return element;
+      }
     default:
       return source;
     }
