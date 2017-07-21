@@ -5,18 +5,6 @@ class NAViewController extends NAObject {
     super({view});
   }
 
-  viewWillAppear() {
-  }
-
-  viewDidAppear() {
-  }
-
-  viewWillDisappear() {
-  }
-
-  viewDidDisappear() {
-  }
-
   destroy() {
     this.view && this.view.destroy && this.view.destroy();
   }
