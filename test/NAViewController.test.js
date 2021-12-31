@@ -13,16 +13,4 @@ describe("destroy", () => {
     vc.destroy();
     assert(shouldBeCalled);
   });
-
-  it("not abort even if view does not have destroy", () => {
-    let shouldNotBeCalled = true;
-    let vc = new NAViewController({
-      hoge: function () {
-        shouldNotBeCalled = false;
-      }
-    })
-
-    vc.destroy();
-    assert(shouldNotBeCalled);
-  });
 });

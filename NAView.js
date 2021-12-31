@@ -1,12 +1,10 @@
 import NAObject from './NAObject';
 
 class NAView extends NAObject {
-  static EventDestroy = 'NAView.EventDestory';
+  bindItems = new Map();
 
   constructor(source) {
-    super();
-
-    this.element = ElementFromSource(source);
+    super({element: elementFromSource(source)});
 
     let propertyElements = this.element.querySelectorAll('*[na-view-property]');
 
@@ -32,7 +30,6 @@ class NAView extends NAObject {
         }
 
         this[viewName] = new NAView(element);
-        this._observeDestroyChild(this[viewName]);
       }
     }
   }
@@ -41,8 +38,23 @@ class NAView extends NAObject {
     if (this.element && this.element.parentNode) {
       this.element.parentNode.removeChild(this.element);
     }
+  }
 
-    this.notify(NAView.EventDestory, this);
+  bind(viewName, {to, keyPath, adapter = BindAdapter, oneway = false}) {
+    this.unbind(viewName);
+    this.bindItems.set(viewName, new BindItem({node: this[viewName], object: to, keyPath, adapter, oneway}).bind());
+  }
+
+  unbind(viewName) {
+    let item = this.bindItems.get(viewName)?.unbind();
+    if (item) {
+      this.bindItems.delete(viewName);
+    }
+  }
+
+  unbindAll() {
+    this.bindItems.forEach((bindItem, a, b) => bindItem.unbind());
+    this.bindItems.clear();
   }
 
   _isRootElementNearestAncestorView(element) {
@@ -62,26 +74,9 @@ class NAView extends NAObject {
 
     throw new Error(`Should never be reached.`);
   }
-
-  _observeDestroyChild(child) {
-    child.addObserver(this, (event, view) => {
-      if (NAView.Event.Destory == event) {
-        for (var prop in this) {
-          if (this[prop] === view) {
-            delete this[prop];
-          }
-        }
-      }
-    })
-  }
 }
 
-const Event = {
-  Destroy: 'NAView:Destory',
-};
-NAView.Event = Event;
-
-function ElementFromSource(source) {
+const elementFromSource = (source) => {
   switch (typeof source) {
   case 'string':
     let element = window.document.createElement('div');
@@ -117,5 +112,101 @@ function ElementFromSource(source) {
     throw new Error('Unsupported source type');
   }
 }
+
+class BindItem {
+  constructor({node, object, keyPath, adapter, oneway}) {
+    this.node = node;
+    this.object = object;
+    this.keys = keyPath.split('.');
+    this.adapter = adapter;
+    this.oneway = oneway;
+
+    this._observer = this._observer.bind(this);
+    this._changeListener = this._changeListener.bind(this);
+  }
+
+  bind() {
+    let {subject, property} = this._subjectWithProperty();
+    this.adapter.setValueToNode(subject[property], this.node);
+
+    this.object.addObserver(this, this._observer);
+
+    if (!this.oneway) {
+      this.node.addEventListener('change', this._changeListener);
+    }
+
+    return this;
+  }
+
+  unbind() {
+    this.object.removeObserver(this);
+
+    if (!this.oneway) {
+      this.node.removeEventListener('change', this._changeListener)
+    }
+
+    return this;
+  }
+
+  _subjectWithProperty() {
+    let subject = this.object;
+
+    for (var i = 0; i < this.keys.length; ++i) {
+      let property = this.keys[i];
+
+      if (i + 1 == this.keys.length) {
+        return {subject, property};
+      }
+      else {
+        subject = subject[property];
+        if (!subject) {
+          throw new Error(`property of "${property}" in "${this.keys.join('.')}" not exists.`);
+        }
+      }
+    }
+  }
+
+  _observer(sender, event) {
+    if (this._mutatingSubject) {
+      return;
+    }
+    if (NAObject.EventChange != event) {
+      return;
+    }
+
+    let {subject, property} = this._subjectWithProperty();
+    this.adapter.setValueToNode(subject[property], this.node);
+  }
+
+
+  _changeListener(e) {
+    let {subject, property} = this._subjectWithProperty();
+    this._mutatingSubject = true;
+    subject[property] = this.adapter.valueFromNode(e.target);
+    this.object.triggerChange();
+    this._mutatingSubject = false;
+  }
+}
+
+class BindAdapter {
+  static valueFromNode(node) {
+    return node.value;
+  }
+
+  static setValueToNode(value, node) {
+    switch (node.tagName) {
+    case 'INPUT':
+    case 'SELECT':
+    case 'TEXTAREA':
+      node.value = value;
+      break;
+    default:
+      node.innerText = value;
+      break;
+    }
+  }
+}
+
+NAView.BindAdapter = BindAdapter;
 
 export default NAView;

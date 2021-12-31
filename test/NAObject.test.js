@@ -1,19 +1,15 @@
 import assert from 'power-assert';
 import { NAObject } from '../nvc';
 
-describe("property change", () => {
+describe("trigger change", () => {
   it("callback", (done) => {
-    let object = new NAObject({hoge: {}});
-    object.addObserver(this, (event, {sender, keyPath, value, oldValue}) => {
-      assert(event === NAObject.EventChange);
+    let object = new NAObject();
+    object.addObserver(this, (sender, event) => {
       assert(sender === object);
-      assert(keyPath === 'hoge.test');
-      assert(value === 1);
-      assert(oldValue === undefined);
+      assert(event === NAObject.EventChange);
       done();
     });
-
-    object.hoge.test = 1;
+    object.triggerChange();
   });
 });
 
@@ -24,6 +20,6 @@ describe("remove observer", () => {
       shoudNotBeReached
     });
     object.removeObserver(this);
-    object.test = 1;
+    object.triggerChange();
   });
 });
