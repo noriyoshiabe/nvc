@@ -1,6 +1,5 @@
 import NAObject from './NAObject';
 import NAArray from './NAArray';
-import NAFormatter from './NAFormatter';
 
 class NABinder {
   constructor(object) {
@@ -8,8 +7,8 @@ class NABinder {
     this.binderItems = [];
   }
 
-  bind({to = undefined, keyPath = undefined, formatter = NAFormatter, oneway = false}) {
-    this.binderItems.push(new NABinderItem(this.object).bind({to, keyPath, formatter, oneway}));
+  bind({to, keyPath, adapter = DefaultAdapter, oneway = false}) {
+    this.binderItems.push(new NABinderItem(this.object).bind({to, keyPath, adapter, oneway}));
     return this;
   }
 
@@ -21,8 +20,8 @@ class NABinder {
 
 class NABinderItem {
   constructor(object) {
-    if (!(object instanceof NAObject || object instanceof NAArray)) {
-      throw new Error('object must be instance of NAObject or NAArray.');
+    if (!object.__observableContext) {
+      throw new Error('object must have __observableContext.');
     }
 
     this.object = object;
@@ -31,7 +30,7 @@ class NABinderItem {
     this._changeListener = this._changeListener.bind(this);
   }
 
-  bind({to = undefined, keyPath = undefined, formatter = NAFormatter, oneway = false}) {
+  bind({to, keyPath, adapter, oneway}) {
     if (!to) {
       throw new Error('to argument is required.');
     }
@@ -45,79 +44,91 @@ class NABinderItem {
       throw new Error('keyPath argument is at least 1 charactor.');
     }
 
-    let keys = keyPath.split('.');
+    this.keyPath = keyPath;
+    this.adapter = adapter;
+    this.oneway = oneway;
+    this.target = to;
+
+    if (!this.oneway) {
+      this.target.addEventListener('change', this._changeListener);
+    }
+
+    this.object.addObserver(this, this._observer);
+
+    let {subject, property} = this._subjectWithProperty();
+    this.adapter.setValueToNode(subject[property], this.target);
+
+    return this;
+  }
+
+  unbind() {
+    this.object.removeObserver(this);
+
+    if (!this.oneway) {
+      this.target.removeEventListener('change', this._changeListener)
+    }
+  }
+
+  _subjectWithProperty() {
+    let keys = this.keyPath.split('.');
     let subject = this.object;
 
     for (var i = 0; i < keys.length; ++i) {
       let property = keys[i];
 
       if (i + 1 == keys.length) {
-        this.subject = subject;
-        this.property = property;
-        this.formatter = formatter;
-        this.target = to;
-        this.oneway = oneway;
-
-        this.subject.addObserver(this, this._observer);
-
-        if (!this.oneway) {
-          this.target.addEventListener('change', this._changeListener);
-        }
-
-        this._setValueToElement(this.target, this.formatter.objectToNode(this.subject[this.property]));
+        return {subject, property};
       }
       else {
         subject = subject[property];
         if (!subject) {
           throw new Error(`property of "${property}" in "${keyPath}" not exists.`);
         }
-        if (!(subject instanceof NAObject || subject instanceof NAArray)) {
-          throw new Error(`property of "${property}" in "${keyPath}" must be instance of NAObject or NAArray.`);
+        if (!subject.__observableContext) {
+          throw new Error(`property of "${property}" in "${keyPath}" must have __observableContext.`);
+          throw new Error('object must have __observableContext.');
         }
       }
     }
-
-    return this;
   }
 
-  unbind() {
-    if (this.subject) {
-      this.subject.removeObserver(this);
-    }
-
-    if (!this.oneway && this.target) {
-      this.target.removeEventListener('change', this._changeListener)
-    }
-  }
-
-  _observer(event, sender, prop, newValue, oldValue) {
+  _observer(event, {sender, keyPath, value}) {
     if (this._mutatingSubject) {
       return;
     }
 
-    if (NAObject.Event.PropertyChange == event && prop == this.property) {
-      this._setValueToElement(this.target, this.formatter.objectToNode(newValue));
+    if (sender === this.object && keyPath == this.keyPath && [NAObject.EventChange, NAArray.EventChange].includes(event)) {
+      this.adapter.setValueToNode(value, this.target);
     }
   }
 
   _changeListener(e) {
+    let {subject, property} = this._subjectWithProperty();
+
     this._mutatingSubject = true;
-    this.subject[this.property] = this.formatter.nodeToObject(e.target.value);
+    subject[property] = this.adapter.valueFromNode(e.target);
     this._mutatingSubject = false;
   }
+}
 
-  _setValueToElement(element, value) {
-    switch (element.tagName) {
+const DefaultAdapter = {
+  valueFromNode: function (node) {
+    return node.value;
+  },
+  setValueToNode: function (value, node) {
+    switch (node.tagName) {
     case 'INPUT':
     case 'SELECT':
     case 'TEXTAREA':
-      element.value = value;
+      node.value = value;
       break;
     default:
-      element.innerText = value;
+      node.innerText = value;
       break;
     }
   }
-}
+};
+
+NABinder.DefaultAdapter = DefaultAdapter;
 
 export default NABinder;

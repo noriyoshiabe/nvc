@@ -38,20 +38,15 @@ const HTMLString = `
 `;
 
 const HTMLNestView = `
-<html>
-  <head></head>
-  <body>
-    <div id="view">
+<div id="view">
+  <h1 na-view-property="name"></h1>
+  <div na-view="childView1">
+    <h1 na-view-property="name"></h1>
+    <div na-view="childView2">
       <h1 na-view-property="name"></h1>
-      <div na-view="childView1">
-        <h1 na-view-property="name"></h1>
-        <div na-view="childView2">
-          <h1 na-view-property="name"></h1>
-        </div>
-      </div>
     </div>
-  </body>
-</html>
+  </div>
+</div>
 `;
 
 describe("From HTML element", () => {
@@ -83,7 +78,7 @@ describe("From Template", () => {
 
   it("attatch property elements", () => {
     let view = new NAView(window.document.querySelector('#template'));
-    assert(view.element instanceof window.DocumentFragment);
+    assert(view.element instanceof window.HTMLElement);
     assert(view.head.tagName == 'H1');
     assert(view.body.tagName == 'P');
   })

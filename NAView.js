@@ -1,8 +1,12 @@
 import NAObject from './NAObject';
 
 class NAView extends NAObject {
+  static EventDestroy = 'NAView.EventDestory';
+
   constructor(source) {
-    super({element: ElementFromSource(source)})
+    super();
+
+    this.element = ElementFromSource(source);
 
     let propertyElements = this.element.querySelectorAll('*[na-view-property]');
 
@@ -38,14 +42,14 @@ class NAView extends NAObject {
       this.element.parentNode.removeChild(this.element);
     }
 
-    this.notify(NAView.Event.Destory, this);
+    this.notify(NAView.EventDestory, this);
   }
 
   _isRootElementNearestAncestorView(element) {
     element = element.parentNode;
 
     while (null != element) {
-      if (this.element === element) {
+      if (this.element == element) {
         return true;
       }
 

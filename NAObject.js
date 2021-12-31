@@ -1,56 +1,12 @@
-function NAObject(attrs) {
-  Object.assign(this, attrs);
+import { makeObservable } from './internal';
 
-  this._observers = [];
-  this._callingSetters = {};
+class NAObject {
+  static EventChange = 'NAObject.EventChange';
 
-  this.proxy = new Proxy(this, {
-    set: function(target, prop, value) {
-      let setterName = 'set' + prop.charAt(0).toUpperCase() + prop.slice(1);
-
-      if (target[setterName] && !target._callingSetters[setterName]) {
-        target._callingSetters[setterName] = true;
-        target[setterName](value);
-        delete target._callingSetters[setterName];
-        return true;
-      }
-
-      let oldValue = target[prop];
-      Reflect.set(target, prop, value);
-      target.notify(NAObject.Event.PropertyChange, target.proxy, prop, value, oldValue);
-      return true;
-    }
-  });
-
-  return this.proxy;
+  constructor(object) {
+    Object.assign(this, object);
+    return makeObservable(this, {event: NAObject.EventChange});
+  }
 }
-
-const Event = {
-  PropertyChange: 'NAObject:PropertyChange'
-};
-NAObject.Event = Event;
-
-Object.assign(NAObject.prototype, {
-  addObserver: function (observer, func) {
-    this._observers.push({observer: observer, func: func})
-  },
-
-  removeObserver: function (observer) {
-    for (let i = this._observers.length - 1; 0 <= i; --i) {
-      if (this._observers[i].observer === observer) {
-        this._observers.splice(i, 1);
-      }
-    }
-  },
-
-  notify: function (event, vaArgs) {
-    let observers = this._observers.slice();
-    
-    for (var i = 0; i < observers.length; ++i) {
-      var elem = observers[i]
-      elem.func.apply(elem.observer, arguments)
-    }
-  },
-});
 
 export default NAObject;

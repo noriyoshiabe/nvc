@@ -44,10 +44,10 @@ describe("binder", () => {
       textH1: 'H1',
       textP: 'P',
       inputText: 'INPUT',
-      child: new NAObject({
+      child: {
         select: "opt1",
         textArea: "TEXTAREA",
-      })
+      },
     });
   });
 

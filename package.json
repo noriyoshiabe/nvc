@@ -3,14 +3,14 @@
   "version": "0.1.0",
   "main": "nvc.js",
   "devDependencies": {
-    "babel-preset-es2015": "^6.24.1",
-    "espower-babel": "^4.0.3",
-    "jsdom": "^11.1.0",
-    "lodash": "^4.17.4",
-    "mocha": "^3.4.2",
-    "power-assert": "^1.4.4"
+    "@babel/core": "^7.16.7",
+    "@babel/preset-env": "^7.16.7",
+    "@babel/register": "^7.16.7",
+    "jsdom": "^19.0.0",
+    "mocha": "^9.1.3",
+    "power-assert": "^1.6.1"
   },
   "scripts": {
-    "test": "mocha --compilers js:espower-babel/guess"
+    "test": "mocha --require @babel/register"
   }
 }
