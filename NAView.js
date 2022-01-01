@@ -117,6 +117,7 @@ class BindItem {
   constructor({node, object, keyPath, adapter, oneway}) {
     this.node = node;
     this.object = object;
+    this.keyPath = keyPath;
     this.keys = keyPath.split('.');
     this.adapter = adapter;
     this.oneway = oneway;
@@ -160,18 +161,21 @@ class BindItem {
       else {
         subject = subject[property];
         if (!subject) {
-          throw new Error(`property of "${property}" in "${this.keys.join('.')}" not exists.`);
+          throw new Error(`property of "${property}" in "${this.keyPath}" not exists.`);
         }
       }
     }
   }
 
-  _observer(sender, event) {
-    if (this._mutatingSubject) {
-      return;
-    }
+  _observer(sender, event, maybeTriggeredBy, maybeKeyPath) {
     if (NAObject.EventChange != event) {
       return;
+    }
+
+    if (maybeTriggeredBy instanceof BindItem) {
+      if (maybeTriggeredBy === this || maybeKeyPath != this.keyPath) {
+        return;
+      }
     }
 
     let {subject, property} = this._subjectWithProperty();
@@ -181,10 +185,8 @@ class BindItem {
 
   _changeListener(e) {
     let {subject, property} = this._subjectWithProperty();
-    this._mutatingSubject = true;
     subject[property] = this.adapter.valueFromNode(e.target);
-    this.object.triggerChange();
-    this._mutatingSubject = false;
+    this.object.triggerChange(this, this.keyPath);
   }
 }
 

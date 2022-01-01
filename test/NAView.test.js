@@ -207,12 +207,11 @@ describe("binder", () => {
     view.bind('textArea', {to: object, keyPath: 'child.textArea'});
 
     view.inputText.value = "HOGE";
-    triggerChange(view.inputText);
-
     view.select.value = "opt2";
-    triggerChange(view.select);
-
     view.textArea.value = "AAAA";
+
+    triggerChange(view.inputText);
+    triggerChange(view.select);
     triggerChange(view.textArea);
 
     assert(object.inputText == 'HOGE');

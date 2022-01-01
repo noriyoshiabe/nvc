@@ -24,8 +24,8 @@ class NAObject {
     this[observers].slice().forEach(observer => observer.callback.bind(observer.receiver)(this, ...arguments));
   }
 
-  triggerChange() {
-    this.notify(NAObject.EventChange);
+  triggerChange(vaArgs) {
+    this.notify(NAObject.EventChange, ...arguments);
   }
 }
 
