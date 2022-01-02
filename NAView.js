@@ -192,12 +192,34 @@ class BindItem {
 
 class BindAdapter {
   static valueFromNode(node) {
-    return node.value;
+    switch (node.tagName) {
+    case 'INPUT':
+      switch (node.type.toUpperCase()) {
+      case 'RADIO':
+      case 'CHECKBOX':
+        return node.checked ? node.value : null;
+      default:
+        return node.value;
+      }
+      break;
+    default:
+      return node.value;
+    }
   }
 
   static setValueToNode(value, node) {
     switch (node.tagName) {
     case 'INPUT':
+      switch (node.type.toUpperCase()) {
+      case 'RADIO':
+      case 'CHECKBOX':
+        node.checked = value == node.value;
+        break;
+      default:
+        node.value = value;
+        break;
+      }
+      break;
     case 'SELECT':
     case 'TEXTAREA':
       node.value = value;
