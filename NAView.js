@@ -122,7 +122,6 @@ class BindItem {
     this.adapter = adapter;
     this.oneway = oneway;
 
-    this._observer = this._observer.bind(this);
     this._changeListener = this._changeListener.bind(this);
   }
 
@@ -130,7 +129,7 @@ class BindItem {
     let {subject, property} = this._subjectWithProperty();
     this.adapter.setValueToNode(subject[property], this.node);
 
-    this.object.addObserver(this, this._observer);
+    this.object.addObserver(this);
 
     if (!this.oneway) {
       this.node.addEventListener('change', this._changeListener);
@@ -167,7 +166,7 @@ class BindItem {
     }
   }
 
-  _observer(sender, event, maybeTriggeredBy, maybeKeyPath) {
+  onNotifyEvent(sender, event, maybeTriggeredBy, maybeKeyPath) {
     if (NAObject.EventChange != event) {
       return;
     }

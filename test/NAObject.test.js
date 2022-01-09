@@ -4,10 +4,12 @@ import { NAObject } from '../nvc';
 describe("trigger change", () => {
   it("callback", (done) => {
     let object = new NAObject();
-    object.addObserver(this, (sender, event) => {
-      assert(sender === object);
-      assert(event === NAObject.EventChange);
-      done();
+    object.addObserver({
+      onNotifyEvent(sender, event) {
+        assert(sender === object);
+        assert(event === NAObject.EventChange);
+        done();
+      }
     });
     object.triggerChange();
   });
@@ -16,10 +18,13 @@ describe("trigger change", () => {
 describe("remove observer", () => {
   it("not callback", () => {
     let object = new NAObject();
-    object.addObserver(this, () => {
-      shoudNotBeReached
-    });
-    object.removeObserver(this);
+    let observer = {
+      onNotifyEvent() {
+        shoudNotBeReached
+      }
+    };
+    object.addObserver(observer);
+    object.removeObserver(observer);
     object.triggerChange();
   });
 });

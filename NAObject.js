@@ -2,30 +2,30 @@ const observers = Symbol('observers');
 
 class NAObject {
   static EventChange = 'NAObject.EventChange';
+  [observers] = [];
 
   constructor(attrs) {
     Object.assign(this, attrs);
-    this[observers] = [];
   }
 
-  addObserver(receiver, callback) {
-    this[observers].push({receiver, callback});
+  addObserver(observer) {
+    this[observers].push(observer);
   }
 
-  removeObserver(receiver) {
+  removeObserver(observer) {
     for (let i = this[observers].length - 1; 0 <= i; --i) {
-      if (this[observers][i].receiver === receiver) {
+      if (this[observers][i] === observer) {
         this[observers].splice(i, 1);
       }
     }
   }
 
-  notify(event, vaArgs) {
-    this[observers].slice().forEach(observer => observer.callback.bind(observer.receiver)(this, ...arguments));
+  notify(event, ...vaArgs) {
+    this[observers].slice().forEach(observer => observer.onNotifyEvent(this, event, ...vaArgs));
   }
 
-  triggerChange(vaArgs) {
-    this.notify(NAObject.EventChange, ...arguments);
+  triggerChange(...vaArgs) {
+    this.notify(NAObject.EventChange, ...vaArgs);
   }
 }
 
