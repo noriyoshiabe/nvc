@@ -4,12 +4,11 @@ class NAView extends NAObject {
   bindItems = new Map();
 
   constructor(source) {
-    super({element: elementFromSource(source)});
+    super();
+    this.element = this.#elementFromSource(source);
 
-    let propertyElements = this.element.querySelectorAll('*[na-view-property]');
-
-    for (var element of propertyElements) {
-      if (this._isRootElementNearestAncestorView(element)) {
+    this.element.querySelectorAll('*[na-view-property]').forEach(element => {
+      if (this.#isRootElementNearestAncestorView(element)) {
         let propertyName = element.getAttribute('na-view-property');
 
         if (this[propertyName]) {
@@ -18,11 +17,10 @@ class NAView extends NAObject {
 
         this[propertyName] = element;
       }
-    }
+    });
 
-    let viewElements = this.element.querySelectorAll('*[na-view]');
-    for (var element of viewElements) {
-      if (this._isRootElementNearestAncestorView(element)) {
+    this.element.querySelectorAll('*[na-view]').forEach(element => {
+      if (this.#isRootElementNearestAncestorView(element)) {
         let viewName = element.getAttribute('na-view');
 
         if (this[viewName]) {
@@ -31,7 +29,7 @@ class NAView extends NAObject {
 
         this[viewName] = new NAView(element);
       }
-    }
+    });
   }
 
   destroy() {
@@ -57,7 +55,7 @@ class NAView extends NAObject {
     this.bindItems.clear();
   }
 
-  _isRootElementNearestAncestorView(element) {
+  #isRootElementNearestAncestorView(element) {
     element = element.parentNode;
 
     while (null != element) {
@@ -74,42 +72,42 @@ class NAView extends NAObject {
 
     throw new Error(`Should never be reached.`);
   }
-}
-
-const elementFromSource = (source) => {
-  switch (typeof source) {
-  case 'string':
-    let element = window.document.createElement('div');
-    element.innerHTML = source;
-    if (1 == element.children.length) {
-      let firstChild = element.children[0];
-      element.removeChild(firstChild);
-      return firstChild;
-    }
-    else {
-      return element;
-    }
-  case 'object':
-    if (!(source instanceof window.Node)) {
-      throw new Error('Unsupported source type');
-    }
-
-    switch (source.tagName) {
-    case 'TEMPLATE':
-      let documentFragemnt = window.document.importNode(source.content, true);
-      if (1 == documentFragemnt.children.length) {
-        return documentFragemnt.firstElementChild;
+  
+  #elementFromSource(source) {
+    switch (typeof source) {
+    case 'string':
+      let element = window.document.createElement('div');
+      element.innerHTML = source;
+      if (1 == element.children.length) {
+        let firstChild = element.children[0];
+        element.removeChild(firstChild);
+        return firstChild;
       }
       else {
-        let element = window.document.createElement('div');
-        element.appendChild(documentFragemnt);
         return element;
       }
+    case 'object':
+      if (!(source instanceof window.Node)) {
+        throw new Error('Unsupported source type');
+      }
+
+      switch (source.tagName) {
+      case 'TEMPLATE':
+        let documentFragemnt = window.document.importNode(source.content, true);
+        if (1 == documentFragemnt.children.length) {
+          return documentFragemnt.firstElementChild;
+        }
+        else {
+          let element = window.document.createElement('div');
+          element.appendChild(documentFragemnt);
+          return element;
+        }
+      default:
+        return source;
+      }
     default:
-      return source;
+      throw new Error('Unsupported source type');
     }
-  default:
-    throw new Error('Unsupported source type');
   }
 }
 
@@ -121,18 +119,16 @@ class BindItem {
     this.keys = keyPath.split('.');
     this.adapter = adapter;
     this.oneway = oneway;
-
-    this._changeListener = this._changeListener.bind(this);
   }
 
   bind() {
-    let {subject, property} = this._subjectWithProperty();
+    let {subject, property} = this.#subjectWithProperty();
     this.adapter.setValueToNode(subject[property], this.node);
 
     this.object.addObserver(this);
 
     if (!this.oneway) {
-      this.node.addEventListener('change', this._changeListener);
+      this.node.addEventListener('change', this.#changeListener);
     }
 
     return this;
@@ -142,13 +138,13 @@ class BindItem {
     this.object.removeObserver(this);
 
     if (!this.oneway) {
-      this.node.removeEventListener('change', this._changeListener)
+      this.node.removeEventListener('change', this.#changeListener);
     }
 
     return this;
   }
 
-  _subjectWithProperty() {
+  #subjectWithProperty() {
     let subject = this.object;
 
     for (var i = 0; i < this.keys.length; ++i) {
@@ -177,13 +173,12 @@ class BindItem {
       }
     }
 
-    let {subject, property} = this._subjectWithProperty();
+    let {subject, property} = this.#subjectWithProperty();
     this.adapter.setValueToNode(subject[property], this.node);
   }
 
-
-  _changeListener(e) {
-    let {subject, property} = this._subjectWithProperty();
+  #changeListener = (e) => {
+    let {subject, property} = this.#subjectWithProperty();
     subject[property] = this.adapter.valueFromNode(e.target);
     this.object.triggerChange(this, this.keyPath);
   }
