@@ -1,35 +1,12 @@
 import NAObject from './NAObject';
 
 class NAView extends NAObject {
-  bindItems = new Map();
+  #bindItems = new Map();
 
   constructor(source) {
     super();
     this.element = this.#elementFromSource(source);
-
-    this.element.querySelectorAll('*[na-view-property]').forEach(element => {
-      if (this.#isRootElementNearestAncestorView(element)) {
-        let propertyName = element.getAttribute('na-view-property');
-
-        if (this[propertyName]) {
-          throw new Error(`Property name [${propertyName}] conflicts.`);
-        }
-
-        this[propertyName] = element;
-      }
-    });
-
-    this.element.querySelectorAll('*[na-view]').forEach(element => {
-      if (this.#isRootElementNearestAncestorView(element)) {
-        let viewName = element.getAttribute('na-view');
-
-        if (this[viewName]) {
-          throw new Error(`Property name [${viewName}] conflicts.`);
-        }
-
-        this[viewName] = new NAView(element);
-      }
-    });
+    this.#attachProperty(this, this.element);
   }
 
   destroy() {
@@ -38,41 +15,53 @@ class NAView extends NAObject {
     }
   }
 
-  bind(viewName, {to, keyPath, adapter = BindAdapter, oneway = false}) {
-    this.unbind(viewName);
-    this.bindItems.set(viewName, new BindItem({node: this[viewName], object: to, keyPath, adapter, oneway}).bind());
+  bind(propetyName, {to, keyPath, adapter = BindAdapter, oneway = false}) {
+    this.unbind(propetyName);
+    this.#bindItems.set(propetyName, new BindItem({node: this[propetyName], object: to, keyPath, adapter, oneway}).bind());
   }
 
-  unbind(viewName) {
-    let item = this.bindItems.get(viewName)?.unbind();
+  unbind(propetyName) {
+    let item = this.#bindItems.get(propetyName)?.unbind();
     if (item) {
-      this.bindItems.delete(viewName);
+      this.#bindItems.delete(propetyName);
     }
   }
 
   unbindAll() {
-    this.bindItems.forEach((bindItem, a, b) => bindItem.unbind());
-    this.bindItems.clear();
+    this.#bindItems.forEach((bindItem, a, b) => bindItem.unbind());
+    this.#bindItems.clear();
   }
 
-  #isRootElementNearestAncestorView(element) {
-    element = element.parentNode;
+  #attachProperty(viewToAttach, parentElement) {
+    for (let i = 0; i < parentElement.children.length; ++i) {
+      let element = parentElement.children[i];
 
-    while (null != element) {
-      if (this.element == element) {
-        return true;
+      if (element.hasAttribute("na-view-property")) {
+        let propetyName = element.getAttribute('na-view-property');
+
+        if (viewToAttach[propetyName]) {
+          throw new Error(`property name [${propetyName}] conflicts.`);
+        }
+
+        viewToAttach[propetyName] = element;
       }
 
-      if (element.hasAttribute('na-view')) {
-        return false;
+      if (element.hasAttribute("na-view")) {
+        let viewName = element.getAttribute('na-view');
+
+        if (viewToAttach[viewName]) {
+          throw new Error(`property name [${viewName}] conflicts.`);
+        }
+
+        let subview = new NAView(element);
+        viewToAttach[viewName] = subview;
+        continue;
       }
 
-      element = element.parentNode;
+      this.#attachProperty(viewToAttach, element);
     }
-
-    throw new Error(`Should never be reached.`);
   }
-  
+
   #elementFromSource(source) {
     switch (typeof source) {
     case 'string':
@@ -162,7 +151,7 @@ class BindItem {
     }
   }
 
-  onNotifyEvent(sender, event, maybeTriggeredBy, maybeKeyPath) {
+  onNotify(sender, event, maybeTriggeredBy, maybeKeyPath) {
     if (NAObject.EventChange != event) {
       return;
     }

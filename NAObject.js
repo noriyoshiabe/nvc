@@ -21,7 +21,7 @@ class NAObject {
   }
 
   notify(event, ...vaArgs) {
-    this[observers].slice().forEach(observer => observer.onNotifyEvent(this, event, ...vaArgs));
+    this[observers].slice().forEach(observer => observer.onNotify(this, event, ...vaArgs));
   }
 
   triggerChange(...vaArgs) {

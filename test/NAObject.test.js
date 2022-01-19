@@ -5,7 +5,7 @@ describe("trigger change", () => {
   it("callback", (done) => {
     let object = new NAObject();
     object.addObserver({
-      onNotifyEvent(sender, event) {
+      onNotify(sender, event) {
         assert(sender === object);
         assert(event === NAObject.EventChange);
         done();
@@ -19,7 +19,7 @@ describe("remove observer", () => {
   it("not callback", () => {
     let object = new NAObject();
     let observer = {
-      onNotifyEvent() {
+      onNotify() {
         shoudNotBeReached
       }
     };
