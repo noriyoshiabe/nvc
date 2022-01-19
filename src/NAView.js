@@ -173,8 +173,8 @@ class BindItem {
   }
 }
 
-class BindAdapter {
-  static valueFromNode(node) {
+const BindAdapter = {
+  valueFromNode(node) {
     switch (node.tagName) {
     case 'INPUT':
       switch (node.type.toUpperCase()) {
@@ -188,9 +188,9 @@ class BindAdapter {
     default:
       return node.value;
     }
-  }
+  },
 
-  static setValueToNode(value, node) {
+  setValueToNode(value, node) {
     switch (node.tagName) {
     case 'INPUT':
       switch (node.type.toUpperCase()) {
@@ -212,8 +212,6 @@ class BindAdapter {
       break;
     }
   }
-}
-
-NAView.BindAdapter = BindAdapter;
+};
 
 export default NAView;
