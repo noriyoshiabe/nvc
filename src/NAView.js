@@ -82,7 +82,7 @@ class NAView extends NAObject {
 
       switch (source.tagName) {
       case 'TEMPLATE':
-        let documentFragemnt = window.document.importNode(source.content, true);
+        let documentFragemnt = source.content.cloneNode(true);
         if (1 == documentFragemnt.children.length) {
           return documentFragemnt.firstElementChild;
         }

@@ -376,7 +376,7 @@
 
         switch (source.tagName) {
           case 'TEMPLATE':
-            var documentFragemnt = window.document.importNode(source.content, true);
+            var documentFragemnt = source.content.cloneNode(true);
 
             if (1 == documentFragemnt.children.length) {
               return documentFragemnt.firstElementChild;
