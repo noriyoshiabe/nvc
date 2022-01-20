@@ -5,15 +5,13 @@
   "types": "nvc.d.ts",
   "scripts": {
     "build": "rollup -c rollup.config.js",
-    "test": "mocha --require @babel/register"
+    "test": "jest"
   },
   "devDependencies": {
     "@babel/core": "^7.16.7",
     "@babel/preset-env": "^7.16.7",
     "@babel/register": "^7.16.7",
-    "jsdom": "^19.0.0",
-    "mocha": "^9.1.3",
-    "power-assert": "^1.6.1",
+    "jest": "^27.4.7",
     "rollup": "^2.64.0",
     "rollup-plugin-babel": "^4.4.0"
   }

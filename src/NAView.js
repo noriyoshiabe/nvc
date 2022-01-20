@@ -184,7 +184,6 @@ const BindAdapter = {
       default:
         return node.value;
       }
-      break;
     default:
       return node.value;
     }

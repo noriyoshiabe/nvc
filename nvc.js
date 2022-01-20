@@ -521,8 +521,6 @@
               return node.value;
           }
 
-          break;
-
         default:
           return node.value;
       }

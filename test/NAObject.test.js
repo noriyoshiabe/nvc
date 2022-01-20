@@ -1,5 +1,5 @@
-import assert from 'power-assert';
-import { NAObject } from '../nvc';
+import assert from 'assert';
+import NAObject from '../src/NAObject';
 
 describe("trigger change", () => {
   it("callback", (done) => {

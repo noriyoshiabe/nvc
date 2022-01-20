@@ -1,33 +1,25 @@
-import assert from 'power-assert';
-import { NAView, NAObject } from '../nvc';
+/**
+ * @jest-environment jsdom
+ */
 
-import jsdom from 'jsdom';
-const { JSDOM } = jsdom;
+import assert from 'assert';
+import NAObject from '../src/NAObject';
+import NAView from '../src/NAView';
 
 const HTMLForSection = `
-<html>
-  <head></head>
-  <body>
-    <section id="section">
-      <h1 na-view-property="head"></h1>
-      <p na-view-property="body"></p>
-    </section>
-  </body>
-</html>
+<section id="section">
+  <h1 na-view-property="head"></h1>
+  <p na-view-property="body"></p>
+</section>
 `;
 
 const HTMLForTemplate = `
-<html>
-  <head></head>
-  <body>
-    <template id="template">
-      <section>
-        <h1 na-view-property="head"></h1>
-        <p na-view-property="body"></p>
-      </section>
-    </template>
-  </body>
-</html>
+<template id="template">
+  <section>
+    <h1 na-view-property="head"></h1>
+    <p na-view-property="body"></p>
+  </section>
+</template>
 `;
 
 const HTMLString = `
@@ -65,6 +57,11 @@ const HTMLBinding = `
       </select>
 
       <textarea na-view-property="textArea"></textarea>
+
+      <input na-view-property="radioA" type="radio" name="hoge" value="A">
+      <input na-view-property="radioB" type="radio" name="hoge" value="B">
+
+      <input na-view-property="check" type="checkbox" value="1">
     </div>
   </body>
 </html>
@@ -73,8 +70,7 @@ const HTMLBinding = `
 
 describe("From HTML element", () => {
   beforeEach(() => {
-    let dom = new JSDOM(HTMLForSection);
-    global.window = dom.window;
+    document.body.innerHTML = HTMLForSection;
   });
 
   it("attatch property elements", () => {
@@ -94,8 +90,7 @@ describe("From HTML element", () => {
 
 describe("From Template", () => {
   beforeEach(() => {
-    let dom = new JSDOM(HTMLForTemplate);
-    global.window = dom.window;
+    document.body.innerHTML = HTMLForTemplate;
   });
 
   it("attatch property elements", () => {
@@ -107,11 +102,6 @@ describe("From Template", () => {
 });
 
 describe("From String", () => {
-  beforeEach(() => {
-    let dom = new JSDOM("<!DOCTYPE html>");
-    global.window = dom.window;
-  });
-
   it("attatch property elements", () => {
     let view = new NAView(HTMLString);
     assert(view.element.tagName == 'SECTION');
@@ -121,11 +111,6 @@ describe("From String", () => {
 });
 
 describe("Nesting", () => {
-  beforeEach(() => {
-    let dom = new JSDOM("<!DOCTYPE html>");
-    global.window = dom.window;
-  });
-
   it("attatch nested view", () => {
     let view = new NAView(HTMLNestView);
     assert(view.element.tagName == 'DIV');
@@ -147,8 +132,7 @@ describe("binder", () => {
   let object
 
   beforeEach(() => {
-    let dom = new JSDOM(HTMLBinding);
-    global.window = dom.window;
+    document.body.innerHTML = HTMLBinding;
 
     object = new NAObject({
       textH1: 'H1',
@@ -158,6 +142,8 @@ describe("binder", () => {
         select: "opt1",
         textArea: "TEXTAREA",
       },
+      check: '1',
+      radio: 'A',
     });
   });
 
@@ -168,18 +154,26 @@ describe("binder", () => {
     view.bind('inputText', {to: object, keyPath: 'inputText'});
     view.bind('select', {to: object, keyPath: 'child.select'});
     view.bind('textArea', {to: object, keyPath: 'child.textArea'});
+    view.bind('check', {to: object, keyPath: 'check'});
+    view.bind('radioA', {to: object, keyPath: 'radio'});
+    view.bind('radioB', {to: object, keyPath: 'radio'});
 
     assert(view.textH1.innerText == 'H1');
     assert(view.textP.innerText == 'P');
     assert(view.inputText.value == 'INPUT');
     assert(view.select.value == 'opt1');
     assert(view.textArea.value == 'TEXTAREA');
+    assert(view.check.checked == true);
+    assert(view.radioA.checked == true);
+    assert(view.radioB.checked == false);
 
     object.textH1 = 'H1##';
     object.textP = 'P##';
     object.inputText = 'INPUT##';
     object.child.select = 'opt2';
     object.child.textArea = 'TEXTAREA##';
+    object.check = null;
+    object.radio = 'B';
 
     object.triggerChange();
 
@@ -188,6 +182,9 @@ describe("binder", () => {
     assert(view.inputText.value == 'INPUT##');
     assert(view.select.value == 'opt2');
     assert(view.textArea.value == 'TEXTAREA##');
+    assert(view.check.checked == false);
+    assert(view.radioA.checked == false);
+    assert(view.radioB.checked == true);
   });
 
   it("unbind attribute value", () => {
@@ -205,18 +202,27 @@ describe("binder", () => {
     view.bind('inputText', {to: object, keyPath: 'inputText'});
     view.bind('select', {to: object, keyPath: 'child.select'});
     view.bind('textArea', {to: object, keyPath: 'child.textArea'});
+    view.bind('check', {to: object, keyPath: 'check'});
+    view.bind('radioA', {to: object, keyPath: 'radio'});
+    view.bind('radioB', {to: object, keyPath: 'radio'});
 
     view.inputText.value = "HOGE";
     view.select.value = "opt2";
     view.textArea.value = "AAAA";
+    view.check.checked = false;
+    view.radioB.checked = true;
 
     triggerChange(view.inputText);
     triggerChange(view.select);
     triggerChange(view.textArea);
+    triggerChange(view.check);
+    triggerChange(view.radioB);
 
     assert(object.inputText == 'HOGE');
     assert(object.child.select == 'opt2');
     assert(object.child.textArea == 'AAAA');
+    assert(object.check == null);
+    assert(object.radio == 'B');
   });
 
   it("unbind reflect element change", () => {
