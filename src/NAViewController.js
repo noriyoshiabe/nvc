@@ -2,8 +2,7 @@ import NAObject from './NAObject';
 
 class NAViewController extends NAObject {
   constructor(view) {
-    super();
-    this.view = view;
+    super({view});
   }
 
   destroy() {

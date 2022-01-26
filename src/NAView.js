@@ -28,7 +28,7 @@ class NAView extends NAObject {
   }
 
   unbindAll() {
-    this.#bindItems.forEach((bindItem, a, b) => bindItem.unbind());
+    this.#bindItems.forEach(bindItem => bindItem.unbind());
     this.#bindItems.clear();
   }
 
@@ -141,8 +141,7 @@ class BindItem {
 
       if (i + 1 == this.keys.length) {
         return {subject, property};
-      }
-      else {
+      } else {
         subject = subject[property];
         if (!subject) {
           throw new Error(`property of "${property}" in "${this.keyPath}" not exists.`);
