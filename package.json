@@ -1,6 +1,6 @@
 {
   "name": "nvc",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "main": "nvc.js",
   "types": "nvc.d.ts",
   "scripts": {
